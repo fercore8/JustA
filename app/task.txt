@@ -1,0 +1,55 @@
+Introduction
+During this exercise, we'll build a generic, dockerized microservice architecture:
+1. The client will stream some data over the network.
+2. The server will receive this data and publish it to a message queue.
+3. The parser will read the raw data from the message queue, parse it, and store the
+parsed result into a no-sql database (Elasticsearch will be simple and appreciated).
+4. An REST API that exposes the saved data (running a simple elastic query with some
+aggs like count or average and returning the json result to the browser – no need to
+invest in GUI)
+Optionally, the exercise can be continued to include:
+5. A GUI — a web-based, graphical user interface that consumes the API and allows us to
+easily visualize it from the browser. [not mandatory at all but can be appreciated after
+finishing tasks 1-4]
+The Client
+The client should be a simple Python 3.9 program that streams data. For achieving this step,
+you need to define a data model (e.g. metric, sensor measure, ….)
+Extra points for using relevant techniques, such as asynchronous programming for performant
+streaming, or protobuf and the like for message serialization.
+There are no strict requirements, but the architect should be able to defend his solutions.
+
+The Server
+The server should be a simple Python 3.9 program that listens on some port (e.g., Flask or
+FastApi,… ), accepts new connections, receives the data they upload, and publishes it to a
+message queue.
+For the purposes of this exercise, I recommend using RabbitMQ, but any other similar
+infrastructure is acceptable.
+As before, the server should be relatively performant, and reasonably designed for horizontal
+scaling (e.g. as stateless as possible, etc.). There's no need to implement any security
+measures (ssl/tls…. Providing explanation on the ssl/tls mechanism will be appreciated)
+The Parser
+The parser is a microservice: also a Python 3.9 program that reads from a message queue,
+runs some parsing logic on the data (e.g. turning strings to uppercase), and writes the parsed
+results to an instance of Elasticsearch (a single running instance using simple docker container
+will be enough).
+The parsing logic itself is not important, but the architect is expected to design parsers in such a
+way, that it'd be easy to add new parsers, scale them horizontally, etc. This is the piece of the
+system that we'll have the most instances of, so it's important that it's designed in such a way
+that eases development and deployment as much as possible.
+Deployment
+Please provide a simple bash script that launches the entire pipeline (e.g., the server, message
+queue and parser) using Docker.
+The architect can use Docker Compose (enough for this exam), Kubernetes or other
+orchestration frameworks.
+Some highlights
+• The architecture should obey to some micro service principals
+-----------------------------------------------------------------
+The information contained in these documents is confidential, privileged and only for the information
+of the intended recipient and may not be used, published, or redistributed without the prior written
+consent of JustA Ltd.
+• During the presentation of the solution, we will appreciate if the candidates explain about
+micro service architecture principals
+• It is recommended to build a yaml file with all the infrastructure (client, server, parser,
+elastic, rabbit, nginx load balancing… over a docker-compose network )
+• Demonstrating horizontal scaling (e.g., docker-compose up -d --scale client=5 --scale
+server=3 --scale parser=2)
