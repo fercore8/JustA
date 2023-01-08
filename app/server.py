@@ -35,7 +35,7 @@ app.add_routes([web.post("/", receive_data)])
 web.run_app(app)
 
 
-# Option with fastapi. Its getting weird with asyncio so ill stick to the previous script.
+# # Option with fastapi. Its getting weird with asyncio so ill stick to the previous script.
 # from fastapi import FastAPI
 # import pika
 # import asyncio
@@ -48,19 +48,21 @@ web.run_app(app)
 # # Declare a queue
 # channel.queue_declare("data_queue")
 #
-# def publish_to_queue(data):
-#     # Publish the data to the queue
-#     channel.basic_publish(exchange="", routing_key="data_queue", body=data)
-#
 # app = FastAPI()
 #
+#
+# async def publish_to_queue(_data):
+#     # Publish the data to the queue
+#     await channel.basic_publish(exchange="", routing_key="data_queue", body=_data)
+#
+#
 # @app.post("/")
-# async def receive_data(request):
+# async def receive_data(_request):
 #     # Run the queue publishing in a separate asyncio task
-#     data = await request.read()
-#     asyncio.create_task(publish_to_queue(data))
+#     _data = await _request.read()
+#     asyncio.create_task(publish_to_queue(_data))
 #     return {"message": "Data received and published to queue"}
 #
 # if __name__ == '__main__':
 #     uvicorn.run(app, host="0.0.0.0", port=8080)
-#
+

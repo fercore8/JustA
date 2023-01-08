@@ -1,13 +1,12 @@
 <!doctype html>
 <html>
   <head>
-    <title>Data from REST API</title>
+    <title>BASIC GUI FOR EXTRACTING DATA FROM DB</title>
     <style>
       body {
         background-color: black;
         color: white;
       }
-
       .main_container {
         display: flex;
         justify-content: center;
@@ -15,25 +14,30 @@
       }
       .container {
         flex-direction: column;
+        text-align: center;
         align-items: center;
-        width: 80%;
+        padding-top: 10px;
+        padding-bottom: 10px;
+        width: 300px;
+        height: 650px;
         margin: 0 auto;
         display: flex;
         flex-wrap: wrap;
         justify-content: center;
+        background-color: #333940;
 
       }
       .data-box {
         justify-content: center;
         align-items: center;
         text-align: center;
-        border: 1px solid white;
+        border: 1.5px solid black;
         padding: 10px;
         margin: 10px;
-        background-color: #333;
-        color: white;
+        background-color: #728392;
+        color: #D8DEE4;
         font-size: 14px;
-        width: 300px;
+        width: 200px;
         height: 50px;
         flex-direction: column;
 
@@ -41,20 +45,41 @@
       .data-box .key {
         font-weight: bold;
       }
+      .data-form {
+        border: 1.5px solid black;
+        width: 220px;
+        height: 150px;
+        margin: 10px;
+        background-color: #728392;
+        color: #D8DEE4;
+
+      }
 
 </style>
   </head>
   <body>
   <div class="main_container">
     <div class="container">
-      {% for key, value in data.items() %}
-      <div class="data-box">
-
+      <div class="data-form">
+      <form action="/search" method="get">
+        <label for="search-type">Choose search type:</label><br>
+        <select id="search-type" name="search-type">
+          <option value="count-by-name">Search count by name</option>
+          <option value="average-by-name">Search average by name</option>
+        </select><br>
+        <label for="name">Enter name:</label><br>
+        <input type="text" id="name" name="name"><br><br>
+        <input type="submit" value="Submit">
+      </form>
+      </div>
+      {% if data %}
+        {% for key, value in data.items() %}
+        <div class="data-box">
           <div class="key">{{ key }}</div>
           <div class="value">{{ value }}</div>
-
-      </div>
-      {% endfor %}
+        </div>
+        {% endfor %}
+      {% endif %}
     </div>
   </div>
   </body>

@@ -20,7 +20,7 @@ if not es.indices.exists(index="data_queue"):
 
 
 def parse_data(data):
-    # # Parse data from the queue. If it has multiple values lets show them nicely and enumerated.
+    # Parse data from the queue.
     metric = metric_pb2.Metric()
     metric.ParseFromString(data)
 

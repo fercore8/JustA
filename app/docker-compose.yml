@@ -2,7 +2,7 @@ version: '3.9'
 
 services:
   elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:7.10.1
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.5.3
     environment:
       - node.name=elasticsearch
       - cluster.name=elasticsearch-cluster
@@ -18,7 +18,7 @@ services:
     networks:
       - microservice-network
   rabbitmq:
-    image: rabbitmq:3.8.9-management
+    image: rabbitmq:3.11.6-management
     environment:
       - RABBITMQ_DEFAULT_USER=rabbitmq
       - RABBITMQ_DEFAULT_PASS=rabbitmq
@@ -29,8 +29,10 @@ services:
     networks:
       - microservice-network
   client:
-    build:
-      context: ..
+    build: .
+    command:
+      - python
+      - client.py
     image: client
     networks:
       - microservice-network
@@ -40,17 +42,25 @@ services:
       - MESSAGE_QUEUE_HOST=rabbitmq
       - MESSAGE_QUEUE_PORT=5672
   server:
-    build:
-      context: ..
+    build: .
+    command:
+      - python
+      - server.py
     image: server
+    volumes:
+      - .:/app
+    ports:
+      - 8080:8080
     networks:
       - microservice-network
     environment:
       - MESSAGE_QUEUE_HOST=rabbitmq
       - MESSAGE_QUEUE_PORT=5672
   parser:
-    build:
-      context: ..
+    build: .
+    command:
+      - python
+      - parser.py
     image: parser
     networks:
       - microservice-network
@@ -60,8 +70,10 @@ services:
       - MESSAGE_QUEUE_HOST=rabbitmq
       - MESSAGE_QUEUE_PORT=5672
   api:
-    build:
-      context: ..
+    build: .
+    command:
+      - python
+      - elasticsearch_api.py
     image: api
     networks:
       - microservice-network
@@ -76,7 +88,6 @@ services:
       - elasticsearch
     expose:
       - 5000
-    command: python elasticsearch_api.py
     volumes:
       - ./api:/app
 
@@ -93,8 +104,8 @@ services:
     volumes:
       - ./nginx:/etc/nginx/conf.d
 
-  volumes:
-    elasticsearch-data:
+volumes:
+  elasticsearch-data:
 
-  networks:
-    microservice-network:
+networks:
+  microservice-network:
