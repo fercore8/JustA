@@ -1,0 +1,16 @@
+cd "C:\Users\ThinkPad\Desktop\JustA\app"
+
+call "C:\a\JustA\Scripts\activate.bat"
+
+call rabbitmqctl start_app
+
+@REM call "C:\Program Files\elastic\elasticsearch-8.5.3\bin\elasticsearch.bat"
+
+set withdocker=0
+
+python server.py
+python client.py
+python parser.py
+python elasticsearch_api.py
+python gui.py
+

@@ -1,111 +1,130 @@
-version: '3.9'
+version: '3'
 
 services:
-  elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:8.5.3
+  rabbitmq:
+    image: rabbitmq:management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    hostname: rabbitmq
     environment:
-      - node.name=elasticsearch
-      - cluster.name=elasticsearch-cluster
+      - RABBITMQ_CONFIG_FILE=/app/rabbitmq.config
+      - RABBITMQ_NODE_PORT=5672
+    volumes:
+      - ./app/rabbitmq.config:/app/rabbitmq.config
+    expose:
+      - '15672'
+    networks:
+      - app-tier
+  #    extra_hosts:
+  #      - "host.docker.internal:host-gateway"
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.0
+    environment:
       - discovery.type=single-node
-      - bootstrap.memory_lock=true
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
     ulimits:
       memlock:
         soft: -1
         hard: -1
-    volumes:
-      - elasticsearch-data:/usr/share/elasticsearch/data
-    networks:
-      - microservice-network
-  rabbitmq:
-    image: rabbitmq:3.11.6-management
-    environment:
-      - RABBITMQ_DEFAULT_USER=rabbitmq
-      - RABBITMQ_DEFAULT_PASS=rabbitmq
-      - RABBITMQ_DEFAULT_VHOST=rabbitmq
     ports:
-      - "15672:15672"
-      - "5672:5672"
+      - "9200:9200"
     networks:
-      - microservice-network
+      - app-tier
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
   client:
     build: .
     command:
       - python
       - client.py
-    image: client
     networks:
-      - microservice-network
+      - app-tier
     environment:
-      - SERVER_HOST=server
-      - SERVER_PORT=5000
-      - MESSAGE_QUEUE_HOST=rabbitmq
-      - MESSAGE_QUEUE_PORT=5672
+      - withdocker=1
+  #    extra_hosts:
+#      - "host.docker.internal:host-gateway"
   server:
+    build: .
+#    command:
+#      - uvicorn
+#      - uvicorn.run(server:app, host="0.0.0.0", port=8080)
+#      - server:app --host 0.0.0.0 --port 8080
+
+#      - server:app --bind --host 0.0.0.0 --port 8080 --worker-class aiohttp.GunicornWebWorker
+    command: [ "uvicorn", "server:app", "--host", "rabbitmq", "--port", "8080"]
+    ports:
+      - '8080:8080'
+    depends_on:
+      - rabbitmq
+    links:
+      - rabbitmq
+    networks:
+      - app-tier
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      - withdocker=1
+  gui:
     build: .
     command:
       - python
-      - server.py
-    image: server
-    volumes:
-      - .:/app
-    ports:
-      - 8080:8080
+      - gui.py
+    depends_on:
+      - api
     networks:
-      - microservice-network
+      - app-tier
     environment:
-      - MESSAGE_QUEUE_HOST=rabbitmq
-      - MESSAGE_QUEUE_PORT=5672
+      - withdocker=1
+  #    extra_hosts:
+#      - "host.docker.internal:host-gateway"
+
   parser:
     build: .
     command:
       - python
       - parser.py
-    image: parser
+    depends_on:
+      - rabbitmq
+      - elasticsearch
     networks:
-      - microservice-network
+      - app-tier
     environment:
-      - ELASTICSEARCH_HOST=elasticsearch
-      - ELASTICSEARCH_PORT=9200
-      - MESSAGE_QUEUE_HOST=rabbitmq
-      - MESSAGE_QUEUE_PORT=5672
+      - withdocker=1
+
+  #    extra_hosts:
+#      - "host.docker.internal:host-gateway"
+
   api:
     build: .
-    command:
-      - python
-      - elasticsearch_api.py
-    image: api
-    networks:
-      - microservice-network
-    environment:
-      - ELASTICSEARCH_HOST=elasticsearch
-      - ELASTICSEARCH_PORT=9200
+    command: [ "uvicorn", "elasticsearch_api:app", "--host", "0.0.0.0", "--port", "5000"]
+#    command:
+#      - uvicorn
+#      - elasticsearch_api:app --host 0.0.0.0 --port 5000
+#      - uvicorn.run(elasticsearch_api:app, host="0.0.0.0", port=5000)
+#      - elasticsearch_api:app --bind --host 0.0.0.0 --port 5000 --worker-class aiohttp.GunicornWebWorker
+
     ports:
       - "5000:5000"
     depends_on:
       - elasticsearch
-    links:
-      - elasticsearch
     expose:
-      - 5000
-    volumes:
-      - ./api:/app
-
-  nginx:
-    image: nginx
+      - '5000'
     networks:
-      - microservice-network
-    ports:
-      - "80:80"
-    depends_on:
-      - api
-    links:
-      - api
-    volumes:
-      - ./nginx:/etc/nginx/conf.d
+      - app-tier
+#    extra_hosts:
+#      - "host.docker.internal:host-gateway"
 
-volumes:
-  elasticsearch-data:
+#  nginx:
+#    image: nginx
+#    ports:
+#      - "80:80"
+#    depends_on:
+#      - api
+#    links:
+#      - api
+#    volumes:
+#      - ./nginx:/etc/nginx/conf.d
 
 networks:
-  microservice-network:
+    app-tier:
+       driver: bridge

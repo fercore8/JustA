@@ -5,8 +5,10 @@ COPY . /app
 COPY requirements.txt /app/requirements.txt
 WORKDIR /app
 
+ENV withdocker=1
+
 # Install the dependencies
 RUN pip install -r requirements.txt
 
-# Run the client app
-CMD ["python", '-u', "server.py"]
+## Run the client app
+#CMD ["python"]

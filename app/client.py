@@ -3,9 +3,19 @@ import time
 import aiohttp
 import random
 import metric_pb2
+import os
 
+
+try:
+    if os.environ['withdocker'] != '0':
+        base_url = 'http://server:8080'
+    else:
+        base_url = 'http://localhost:8080'
+except KeyError:
+    base_url = 'http://localhost:8080'
 
 sensors_list = ["sensor_1", "sensor_2", "sensor_3"]  # if we were to measure heat sensors from an engine
+
 
 # Define a function for generating the data
 def generate_data():
@@ -25,7 +35,7 @@ async def send_data():
     async with aiohttp.ClientSession() as session:
         # Send the data to the server
         try:
-            async with session.post("http://localhost:8080", data=serialized_data) as resp:
+            async with session.post(f"{base_url}", data=serialized_data) as resp:
                 print(await resp.text())
         except Exception as e:
             print(e)

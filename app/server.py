@@ -1,15 +1,25 @@
 import asyncio
 import pika
 from aiohttp import web
+import uvicorn
+import os
 
 """
 SSL/TLS is a protocol that provides secure communication over the internet by encrypting data that is
 transmitted between the client and the server. This server upon request is not secured.
 """
+try:
+    if os.environ['withdocker'] != '0':
+        rabbitmq_host = 'rabbitmq'
+    else:
+        rabbitmq_host = 'localhost'
+except KeyError:
+    rabbitmq_host = 'localhost'
 
+print(f'current environment {rabbitmq_host}')
 
 # Connect to RabbitMQ
-connection = pika.BlockingConnection(pika.ConnectionParameters("localhost"))
+connection = pika.BlockingConnection(pika.ConnectionParameters(host=rabbitmq_host))  # Production
 channel = connection.channel()
 
 # Declare a queue
@@ -32,37 +42,12 @@ async def receive_data(request):
 app = web.Application()
 app.add_routes([web.post("/", receive_data)])
 
-web.run_app(app)
 
+if __name__ == "__main__":
+    try:
+        if os.environ['withdocker'] != '0':
+            uvicorn.run(app, host="0.0.0.0", port=8080)  # Production
+    except KeyError:
+        web.run_app(app)  # Dev
 
-# # Option with fastapi. Its getting weird with asyncio so ill stick to the previous script.
-# from fastapi import FastAPI
-# import pika
-# import asyncio
-# import uvicorn
-#
-# # Connect to RabbitMQ
-# connection = pika.BlockingConnection(pika.ConnectionParameters("localhost"))
-# channel = connection.channel()
-#
-# # Declare a queue
-# channel.queue_declare("data_queue")
-#
-# app = FastAPI()
-#
-#
-# async def publish_to_queue(_data):
-#     # Publish the data to the queue
-#     await channel.basic_publish(exchange="", routing_key="data_queue", body=_data)
-#
-#
-# @app.post("/")
-# async def receive_data(_request):
-#     # Run the queue publishing in a separate asyncio task
-#     _data = await _request.read()
-#     asyncio.create_task(publish_to_queue(_data))
-#     return {"message": "Data received and published to queue"}
-#
-# if __name__ == '__main__':
-#     uvicorn.run(app, host="0.0.0.0", port=8080)
 

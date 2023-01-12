@@ -1,7 +1,16 @@
 from flask import Flask, render_template, request
 import requests
+import os
 
 app = Flask(__name__)
+
+try:
+    if os.environ['withdocker'] != '0':
+        base_url = 'http://api:5000'
+    else:
+        base_url = 'http://localhost:5000'
+except KeyError:
+    base_url = 'http://localhost:5000'
 
 
 @app.route("/")
@@ -16,13 +25,15 @@ def search():
     name = request.args.get("name")
 
     if search_type == "count-by-name":
-        api_response = requests.get(f"http://localhost:5000/api/data/search/count-by-name/{name}")
+        api_response = requests.get(f"{base_url}/api/data/search/count-by-name/{name}")
     elif search_type == "average-by-name":
-        api_response = requests.get(f"http://localhost:5000/api/data/search/average-by-name/{name}")
+        api_response = requests.get(f"{base_url}/api/data/search/average-by-name/{name}")
     else:
-        api_response = requests.get("http://localhost:5000/api/data")
-
-    data = api_response.json()
+        api_response = requests.get(f"{base_url}/api/data")
+    if api_response:
+        data = api_response.json()
+    else:
+        data = {'error': 'no data retrieved'}
 
     return render_template("home.html", data=data)
 
@@ -33,7 +44,7 @@ def search():
 @app.route("/name/<name>")  # search by sensor_1 in this example
 def return_data_by_name(name):
     # Retrieve the data from the API
-    api_response = requests.get(f"http://localhost:5000/api/data/search/name/{name}")
+    api_response = requests.get(f"{base_url}/api/data/search/name/{name}")
     data = api_response.json()
 
     # Render the template and pass the data to it
@@ -43,7 +54,7 @@ def return_data_by_name(name):
 @app.route("/count-by-name/<name>")  # in this example sensor_1
 def search_count_data_by_name(name):
     # Perform an Elasticsearch query for documents with the specified name
-    api_response = requests.get(f"http://localhost:5000/api/data/search/count-by-name/{name}")
+    api_response = requests.get(f"{base_url}/api/data/search/count-by-name/{name}")
     data = api_response.json()
     print(data)
 
@@ -54,7 +65,7 @@ def search_count_data_by_name(name):
 @app.route("/average-by-name/<name>")  # in this example sensor_1
 def search_calculate_average_data_by_name(name):
     # Perform an Elasticsearch query for documents with the specified name
-    api_response = requests.get(f"http://localhost:5000/api/data/search/average-by-name/{name}")
+    api_response = requests.get(f"{base_url}/api/data/search/average-by-name/{name}")
     data = api_response.json()
     # Render the template and pass the data to it
     return render_template("home.html", data=data)
