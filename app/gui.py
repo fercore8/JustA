@@ -12,6 +12,8 @@ try:
 except KeyError:
     base_url = 'http://localhost:5000'
 
+'''EXAMPLE CALL http://127.0.0.1:5001/search?search-type=average-by-name&name=sensor_1'''
+
 
 @app.route("/")
 def home():
@@ -31,6 +33,8 @@ def search():
     else:
         api_response = requests.get(f"{base_url}/api/data")
     if api_response:
+        print(api_response)
+        # data = api_response
         data = api_response.json()
     else:
         data = {'error': 'no data retrieved'}
@@ -72,4 +76,4 @@ def search_calculate_average_data_by_name(name):
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5001, debug=True)
+    app.run(host="0.0.0.0", port=5001)

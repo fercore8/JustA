@@ -1,6 +1,6 @@
 import asyncio
 import pika
-from aiohttp import web
+from fastapi import FastAPI, Request
 import uvicorn
 import os
 
@@ -18,6 +18,9 @@ except KeyError:
 
 print(f'current environment {rabbitmq_host}')
 
+app = FastAPI()
+
+
 # Connect to RabbitMQ
 connection = pika.BlockingConnection(pika.ConnectionParameters(host=rabbitmq_host))  # Production
 channel = connection.channel()
@@ -31,23 +34,17 @@ async def publish_to_queue(data):  # made this async so when asyncio calls it, t
     channel.basic_publish(exchange="", routing_key="data_queue", body=data)
 
 
-async def receive_data(request):
+@app.post('/')
+async def receive_data(request: Request):
     # Get the data from the request
-    data = await request.read()
+    print(request.headers)
+    print(request.body)
+
+    data = await request.body()
     # Run the queue publishing in a separate asyncio task
     asyncio.create_task(publish_to_queue(data))
-    return web.Response(text="Data received and published to queue")
-
-
-app = web.Application()
-app.add_routes([web.post("/", receive_data)])
+    return {'message': "Data received and published to queue"}
 
 
 if __name__ == "__main__":
-    try:
-        if os.environ['withdocker'] != '0':
-            uvicorn.run(app, host="0.0.0.0", port=8080)  # Production
-    except KeyError:
-        web.run_app(app)  # Dev
-
-
+    uvicorn.run(app, host="0.0.0.0", port=8080)
