@@ -44,9 +44,6 @@ orchestration frameworks.
 Some highlights
 • The architecture should obey to some micro service principals
 -----------------------------------------------------------------
-The information contained in these documents is confidential, privileged and only for the information
-of the intended recipient and may not be used, published, or redistributed without the prior written
-consent of JustA Ltd.
 • During the presentation of the solution, we will appreciate if the candidates explain about
 micro service architecture principals
 • It is recommended to build a yaml file with all the infrastructure (client, server, parser,
