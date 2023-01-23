@@ -7,8 +7,6 @@ services:
       - "5672:5672"
       - "15672:15672"
     hostname: rabbitmq
-    environment:
-      - RABBITMQ_NODE_PORT=5672
     networks:
       - app-tier
 
@@ -51,7 +49,7 @@ services:
 
   server:
     build: .
-    command: [ "uvicorn", "server:app", "--host", "0.0.0.0", "--port", "8080"]  # mistake, host should be 0.0.0.0
+    command: ["uvicorn", "server:app", "--host", "0.0.0.0", "--port", "8080"]
 #    ports:
 #      - "8080:8080"
     expose:
@@ -98,7 +96,7 @@ services:
 
   api:
     build: .
-    command: [ "uvicorn", "elasticsearch_api:app", "--host", "0.0.0.0", "--port", "5000" ]
+    command: ["uvicorn", "elasticsearch_api:app", "--host", "0.0.0.0", "--port", "5000"]
     ports:
       - "5000:5000"
     depends_on:

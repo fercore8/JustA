@@ -4,6 +4,7 @@ from time import sleep
 import metric_pb2
 import os
 
+# run on the right host if run locally or on docker.
 try:
     if os.environ['withdocker'] != '0':
         elastic_host = 'elasticsearch'
@@ -17,13 +18,13 @@ except KeyError:
 
 
 # Connect to RabbitMQ
-connection = pika.BlockingConnection(pika.ConnectionParameters(host=rabbitmq_host))  # Production
+connection = pika.BlockingConnection(pika.ConnectionParameters(host=rabbitmq_host))
 channel = connection.channel()
 
 # Connect to ElasticSearch
 es = Elasticsearch([{"host": elastic_host, "port": 9200, "scheme": "http"}])
 
-# Create the indexes if needed
+# Check if index exists or create them.
 if not es.indices.exists(index="parsed_data"):
     es.indices.create(index="parsed_data")
 

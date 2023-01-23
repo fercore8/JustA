@@ -1,11 +1,10 @@
 import asyncio
-# import time  # removed.
 import aiohttp
 import random
 import metric_pb2
 import os
 
-
+# run on the right host if run locally or on docker.
 try:
     if os.environ['withdocker'] != '0':
         base_url = 'http://server:8080'
@@ -33,14 +32,13 @@ async def send_data():
 
     # Create an aiohttp client
     async with aiohttp.ClientSession() as session:
-        # Send the data to the server
+        # Send the data to the server as post request
         try:
             async with session.post(base_url, data=serialized_data) as resp:
-                print(resp)
                 print(await resp.text())
         except Exception as e:
             print(e)
-        await asyncio.sleep(5)  # added this line and removed time sleep
+        await asyncio.sleep(5)
 
 # Create a loop that sends the data to the server at a specific interval
 while True:

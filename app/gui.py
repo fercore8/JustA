@@ -4,6 +4,7 @@ import os
 
 app = Flask(__name__)
 
+# run on the right host if run locally or on docker.
 try:
     if os.environ['withdocker'] != '0':
         base_url = 'http://api:5000'
